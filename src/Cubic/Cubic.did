@@ -1,0 +1,253 @@
+type WithdrawRequest = 
+ record {
+   amount: nat;
+   asset: variant {
+            WTC;
+            XTC;
+          };
+ };
+type User = 
+ variant {
+   address: AccountIdentifier;
+   "principal": principal;
+ };
+type TransferEvent = 
+ record {
+   from: principal;
+   to: principal;
+   value: nat;
+ };
+type TransferError__1 = 
+ variant {
+   AmountTooLarge;
+   CallFailed;
+   InsufficientBalance;
+   Unknown;
+ };
+type TransferError = 
+ variant {
+   CannotNotify: AccountIdentifier;
+   InsufficientBalance;
+   InvalidToken: TokenIdentifier;
+   Other: text;
+   Rejected;
+   Unauthorized: AccountIdentifier;
+ };
+type TokenIdentifier = text;
+type Summary = 
+ record {
+   details: ProjectDetails_v2;
+   owner: opt Block;
+   status: Status_v2;
+ };
+type StreamingStrategy = variant {
+                           Callback:
+                            record {
+                              callback:
+                               func (StreamingCallbackToken) ->
+                                (StreamingCallbackHttpResponse) query;
+                              token: StreamingCallbackToken;
+                            };};
+type StreamingCallbackToken = 
+ record {
+   content_encoding: text;
+   index: nat;
+   key: text;
+   sha256: opt blob;
+ };
+type StreamingCallbackHttpResponse = 
+ record {
+   body: blob;
+   token: opt StreamingCallbackToken;
+ };
+type Status_v2 = 
+ record {
+   isForeclosed: bool;
+   offerTimestamp: int;
+   offerValue: nat;
+   owner: principal;
+ };
+type SetDetailsRequest = 
+ record {
+   createdTime: opt int;
+   creator: opt text;
+   description: opt text;
+   isActive: opt bool;
+   name: opt text;
+   projectId: nat;
+ };
+type Result = 
+ variant {
+   err: Error;
+   ok;
+ };
+type ProjectDetails_v2 = 
+ record {
+   createdTime: int;
+   creator: text;
+   description: text;
+   isActive: bool;
+   name: text;
+ };
+type PriceChange = 
+ record {
+   from: nat;
+   owner: principal;
+   to: nat;
+ };
+type Memo = vec nat8;
+type Initialization = 
+ record {
+   canisters: Canisters;
+   controller: principal;
+ };
+type Info = 
+ record {
+   canisters: Canisters;
+   controllers: vec principal;
+   projectCount: nat;
+   stats:
+    record {
+      annualTaxRate: nat;
+      cubesSupply: nat;
+      cyclesBalance: nat;
+      feesCollected: nat;
+      foreclosureCount: nat;
+      lastTaxTimestamp: int;
+      ownCubesBalance: nat;
+      salesTotal: nat;
+      taxCollected: nat;
+      transactionFee: nat;
+      transactionsCount: nat;
+      wtcBalance: nat;
+      xtcBalance: nat;
+    };
+ };
+type HttpResponse = 
+ record {
+   body: blob;
+   headers: vec HeaderField;
+   status_code: nat16;
+   streaming_strategy: opt StreamingStrategy;
+ };
+type HttpRequest = 
+ record {
+   body: blob;
+   headers: vec HeaderField;
+   method: text;
+   url: text;
+ };
+type HistoryResponse = 
+ record {
+   count: nat;
+   events: vec Event;
+ };
+type HistoryRequest = 
+ record {
+   "principal": opt principal;
+   projectId: nat;
+ };
+type HeaderField = 
+ record {
+   text;
+   text;
+ };
+type Event = 
+ record {
+   data: variant {
+           PriceChange: PriceChange;
+           Transfer: TransferEvent;
+         };
+   id: nat;
+   timestamp: int;
+ };
+type ErrorCode = 
+ variant {
+   canister_error;
+   canister_reject;
+   destination_invalid;
+   future: nat32;
+   system_fatal;
+   system_transient;
+ };
+type Error = 
+ variant {
+   CannotPurchase;
+   Error: record {
+            error_message: text;
+            error_type: ErrorCode;
+          };
+   InsufficientBalance;
+   InsufficientLiquidity;
+   WtcTransferError: TransferError;
+   XtcTransferError: TransferError__1;
+ };
+type Cubic = 
+ service {
+   acceptCycles: () -> ();
+   allSummary: () -> (vec Summary) query;
+   balance: (opt principal) -> (nat) query;
+   buy: (record {
+           newOffer: nat;
+           projectId: nat;
+         }) -> (Result);
+   canister_heartbeat: () -> ();
+   depositXtc: (principal) -> (nat);
+   details: (nat) -> (ProjectDetails_v2) query;
+   getBlocks: (BlocksRequest) -> (vec Block) query;
+   getHistory: (HistoryRequest) -> (HistoryResponse) query;
+   http_request: (HttpRequest) -> (HttpResponse) query;
+   info: () -> (Info) query;
+   newProject: (ProjectDetails_v2) -> ();
+   owners: (nat) -> (vec Block) query;
+   restore: () -> ();
+   setCanisters: (Canisters) -> ();
+   setControllers: (vec principal) -> ();
+   setDetails: (SetDetailsRequest) -> ();
+   setPrice: (record {
+                newOffer: nat;
+                projectId: nat;
+              }) -> (Result);
+   summary: (nat) -> (Summary) query;
+   tokenTransferNotification: (TokenIdentifier, User, Balance, Memo) ->
+    (opt Balance);
+   wallet_receive: () -> (nat);
+   withdraw: (WithdrawRequest) -> (Result);
+ };
+type Canisters = 
+ record {
+   wtc: principal;
+   xtc: principal;
+ };
+type BlocksRequest = 
+ record {
+   order: variant {
+            asc;
+            desc;
+          };
+   orderBy:
+    variant {
+      id;
+      lastPurchasePrice;
+      lastSalePrice;
+      lastSaleTime;
+      totalOwnedTime;
+      totalSaleCount;
+      totalValue;
+    };
+   projectId: nat;
+ };
+type Block = 
+ record {
+   id: nat;
+   lastPurchasePrice: int;
+   lastSalePrice: int;
+   lastSaleTime: int;
+   owner: principal;
+   totalOwnedTime: int;
+   totalSaleCount: nat;
+   totalValue: nat;
+ };
+type Balance = nat;
+type AccountIdentifier = text;
+service : (Initialization) -> Cubic

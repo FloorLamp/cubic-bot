@@ -22,8 +22,8 @@ bot.command("prices", async (ctx) => {
 
 bot.launch();
 
-// Run tasks every 20s
-setInterval(runTasks, 20 * 1000);
+// Run tasks every 30s
+setInterval(runTasks, 30 * 1000);
 runTasks();
 
 // Enable graceful stop

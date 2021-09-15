@@ -2,11 +2,18 @@ import fs from "fs";
 import { SNAPSHOT_PATH } from "./common";
 import { fetchSummary } from "./fetchData";
 import { bot, CHAT_ID } from "./telegram";
-import { JsonData } from "./types";
+import { Data, JsonData } from "./types";
 import { formatNumber, shortPrincipal, stringify } from "./utils";
 
 export async function runTasks() {
-  const data = await fetchSummary();
+  let data: Data;
+  try {
+    data = await fetchSummary();
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+
   let cached: JsonData;
   try {
     delete require.cache[require.resolve(SNAPSHOT_PATH)];
